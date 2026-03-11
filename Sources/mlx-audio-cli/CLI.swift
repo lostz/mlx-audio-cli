@@ -29,6 +29,9 @@ struct STTCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Local models cache directory")
     var modelsDir: String?
 
+    @Option(name: .long, help: "Maximum number of tokens to generate")
+    var maxTokens: Int = 81920
+
     @Option(name: [.short, .long], help: "Output file path (default: stdout)")
     var output: String?
 
@@ -46,7 +49,8 @@ struct STTCommand: AsyncParsableCommand {
         let text = try await transcriber.transcribe(
             audioURL: audioURL,
             modelID: model,
-            language: language
+            language: language,
+            maxTokens: maxTokens
         )
 
         if let outputPath = output {

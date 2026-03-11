@@ -11,7 +11,7 @@ struct Transcriber {
         try? FileManager.default.createDirectory(at: modelsDir, withIntermediateDirectories: true)
     }
 
-    func transcribe(audioURL: URL, modelID: String, language: String) async throws -> String {
+    func transcribe(audioURL: URL, modelID: String, language: String, maxTokens: Int = 81920) async throws -> String {
         fputs("Loading model: \(modelID)\n", stderr)
 
         let cache = HubCache(cacheDirectory: modelsDir)
@@ -20,7 +20,7 @@ struct Transcriber {
         fputs("Transcribing \(audioURL.lastPathComponent)...\n", stderr)
         let (_, audioData) = try loadAudioArray(from: audioURL)
 
-        let params = STTGenerateParameters(language: language)
+        let params = STTGenerateParameters(maxTokens: maxTokens, language: language)
         let output = model.generate(audio: audioData, generationParameters: params)
         return output.text
     }
