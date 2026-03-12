@@ -6,19 +6,25 @@ BINARY_DIR=".build/release"
 METALLIB="$BINARY_DIR/mlx.metallib"
 
 build_swift() {
-    echo "Building Swift package (clean)..."
-    swift package clean
+    echo "Building Swift package..."
     swift build -c release
 }
 
 build_metal() {
     echo "Compiling Metal shaders..."
+
+    if [ ! -d "$METAL_DIR" ]; then
+        echo "Error: Metal shader directory not found: $METAL_DIR"
+        echo "Run 'swift package resolve' first."
+        exit 1
+    fi
+
     TMPDIR_METAL=$(mktemp -d)
     trap "rm -rf $TMPDIR_METAL" EXIT
 
-    for metal_file in $(find "$METAL_DIR" -name "*.metal"); do
+    find "$METAL_DIR" -name "*.metal" | while IFS= read -r metal_file; do
         air_file="$TMPDIR_METAL/$(basename "${metal_file%.metal}").air"
-        xcrun metal -I "$METAL_DIR" -c "$metal_file" -o "$air_file"
+        xcrun metal -O2 -I "$METAL_DIR" -c "$metal_file" -o "$air_file"
     done
 
     xcrun metallib "$TMPDIR_METAL"/*.air -o "$METALLIB"

@@ -7,8 +7,44 @@ struct MLXAudioCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "mlx-audio",
         abstract: "Audio processing CLI powered by MLX",
-        subcommands: [STTCommand.self]
+        subcommands: [STTCommand.self, ListCommand.self]
     )
+}
+
+struct ListCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "list",
+        abstract: "List locally cached models"
+    )
+
+    @Option(name: .long, help: "Local models cache directory")
+    var modelsDir: String?
+
+    func run() throws {
+        let resolvedModelsDir = modelsDir.map { URL(fileURLWithPath: $0) }
+            ?? FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(".mlx-audio/models")
+
+        guard FileManager.default.fileExists(atPath: resolvedModelsDir.path) else {
+            print("No models cached yet (directory not found: \(resolvedModelsDir.path))")
+            return
+        }
+
+        let entries = (try? FileManager.default.contentsOfDirectory(atPath: resolvedModelsDir.path)) ?? []
+        let models = entries
+            .filter { $0.hasPrefix("models--") }
+            .map { $0.dropFirst("models--".count).replacingOccurrences(of: "--", with: "/") }
+            .sorted()
+
+        if models.isEmpty {
+            print("No models cached yet.")
+        } else {
+            print("Cached models in \(resolvedModelsDir.path):\n")
+            for model in models {
+                print("  \(model)")
+            }
+        }
+    }
 }
 
 struct STTCommand: AsyncParsableCommand {

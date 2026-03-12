@@ -6,3 +6,17 @@ DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+
+# Vim swap files
+*.swp
+*.swo
+
+# Audio test files
+*.mp3
+*.wav
+
+# Claude Code local config
+.claude/
+
+# Skill binaries
+skills/**/bin/
